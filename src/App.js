@@ -15,12 +15,11 @@ import moment from 'moment';
 
 function App() {
 
-
-  const [calibration_min, setCalibration_min] = useState(0);
-  const [calibration_max, setCalibration_max] = useState(100);
-  
   const Adjuster = () =>{
   
+    const [calibration_min, setCalibration_min] = useState(0);
+    const [calibration_max, setCalibration_max] = useState(100);
+    const [calibration_reverse, setCalibration_reverse] = useState(false);
     const [percentOpen, setPercentOpen] = useState(50);
   
     const setPercentOpenSend = () => {
@@ -30,40 +29,13 @@ function App() {
           data:{
               percent: percentOpen,
               calibration_max: calibration_max,
-              calibration_min: calibration_min
+              calibration_min: calibration_min,
+              calibration_reverse: calibration_reverse
           }
       });
     };
-  
-  
-  
+
   return (
-  <Form.Group className="mb-3">
-    <Form.Label>
-        Set% Open
-        <Form.Control min="0" max="100" type="number" onChange={ e=>setPercentOpen(parseFloat(e.target.value)) } value={ percentOpen }/>    
-    </Form.Label>
-    <Button onClick={ setPercentOpenSend }>
-        Set
-    </Button>
-  </Form.Group>
-  )};
-  
-  const Calibration = () =>{
-  
-    const [testPercent, setTestPercent] = useState("0");
-  
-    const sendTestSet = () =>{
-        axios({
-            method:'POST',
-            url:'/api/setServoPosition',
-            data:{
-                percent: testPercent
-            }
-        });
-    };
-  
-    return(
   <Form.Group className="mb-3">
     <Form.Label>
         Min%
@@ -74,17 +46,20 @@ function App() {
         Max%
         <Form.Control min="0" max="100" type="number" onChange={ e=>setCalibration_max(parseFloat(e.target.value)) } value={ calibration_max } />    
     </Form.Label>
-  
     <Form.Label>
-        Set%
-        <Form.Control min="0" max="100" type="number" onChange={ e=>setTestPercent(parseFloat(e.target.value)) } value={ testPercent } />    
+        Reverse
+        <Form.Check checked={ calibration_reverse } onChange={ e=>setCalibration_reverse(!calibration_reverse) } type="checkbox"/> 
     </Form.Label>
-    <Button onClick={ sendTestSet }>
-        Test Set
+    <Form.Label>
+        Set% Open
+        <Form.Control min="0" max="100" type="number" onChange={ e=>setPercentOpen(parseFloat(e.target.value)) } value={ percentOpen }/>    
+    </Form.Label>
+    <Button onClick={ setPercentOpenSend }>
+        Set
     </Button>
   </Form.Group>
   )};
-
+  
   const MeaterLogin = () => {
 
     const [userName, setUserName] = useState("");
@@ -117,7 +92,7 @@ function App() {
             Login
         </Button>
       </Form.Group>
-      )};
+)};
 
 const LiveData = () => {
 
@@ -266,10 +241,6 @@ return (
   return (
       <div>
         <h3>Robo-Kamado</h3>
-
-        <h4>Calibrate</h4>
-        <Calibration/>
-
         <h4>Adjust</h4>
         <Adjuster />
         

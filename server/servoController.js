@@ -7,8 +7,13 @@ let lastServoPositionDto = null;
 const setServoPosition = (servoPositionDto) => {
     lastServoPositionDto = servoPositionDto;
 
-    let newTarget =  ((servoPositionDto.calibration_max - servoPositionDto.calibration_min) * (servoPositionDto.percent / 100)) + servoPositionDto.calibration_min;
+    let newTarget = null;
 
+    if(servoPositionDto.calibration_reverse) {
+        newTarget = ((servoPositionDto.calibration_max - servoPositionDto.calibration_min) * ((100 - servoPositionDto.percent) / 100)) + servoPositionDto.calibration_min;
+    } else {
+        newTarget = ((servoPositionDto.calibration_max - servoPositionDto.calibration_min) * (servoPositionDto.percent / 100)) + servoPositionDto.calibration_min;
+    }
     setServoRecur(newTarget);
 };
 
@@ -16,9 +21,10 @@ const setServoRecur = (newTarget) => {
     const stepSize = newTarget > currentServoPosition ? 0.1 : -0.1;
 
     currentServoPosition = currentServoPosition + stepSize;
-    servoblaster.createWriteStream(3).write(currentServoPosition + "%");
+    console.log('new servo position:' + currentServoPosition);
+    //servoblaster.createWriteStream(3).write(currentServoPosition + "%");
 
-    if(Math.abs(newTarget - currentServoPosition) > 1){
+    if(Math.abs(newTarget - currentServoPosition) > 0.1){
         setTimeout(() => setServoRecur(newTarget), 25);
     }
 };
