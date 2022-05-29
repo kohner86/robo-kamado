@@ -22,7 +22,7 @@ const setServoRecur = (newTarget) => {
 
     currentServoPosition = currentServoPosition + stepSize;
     console.log('new servo position:' + currentServoPosition);
-    //servoblaster.createWriteStream(3).write(currentServoPosition + "%");
+    servoblaster.createWriteStream(3).write(currentServoPosition + "%");
 
     if(Math.abs(newTarget - currentServoPosition) > 0.1){
         setTimeout(() => setServoRecur(newTarget), 25);

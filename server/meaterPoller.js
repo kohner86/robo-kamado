@@ -33,7 +33,7 @@ const startPoller = (token) =>{
                 servo: servoController.getLastServoPositionDto()
             }; 
             
-            fs.appendFile('statsDB/' + sessionId, JSON.stringify(currentData) + '\r\n', t => {});
+            fs.appendFile('server/statsDB/' + sessionId, JSON.stringify(currentData) + '\r\n', t => {console.log('cb', t)});
         })
         .catch(function (error) {
             console.log(error);
