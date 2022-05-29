@@ -181,11 +181,57 @@ const Stats = () => {
         break;
     }
 
-    console.log('asdsadsadsadasd', minTimeStamp, mostRecentData);
-
     selectedSessionData = selectedSessionData.filter(s => moment(s.timestamp).unix() > minTimeStamp);
 
-    probeIndicesToRender = mostRecentData.probes.map((p, idx) => (p.ambientTempF > 130) ? idx : null).filter(i => i != null);
+    probeIndicesToRender = mostRecentData.probes.map((p, idx) => idx).filter(i => i != null);
+
+    const getAmbientTemps = (idx) => {
+      const record = selectedSessionData[idx];
+
+      const temps = record.probes.map(p => p.ambientTempF);
+
+      const max = Math.max(...temps);
+      const min = Math.min(...temps);
+
+      const minToReturn = 140; 
+
+      return temps.filter(t => t > minToReturn);
+    };
+
+    const getAvg = (arr) => {
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    const calcDerivative = (samples) => {
+      if(samples.length < 2) return null;
+
+      const diffs = samples.slice(1).map((s, idx) => {
+        const diff = samples[idx + 1] - samples[0];
+
+        const multiplier = (idx * 10 + 1) / samples.length;
+
+        return diff * multiplier;
+      });
+
+      return getAvg(diffs) * -1;
+    };
+
+    selectedSessionData.forEach((d,idx)=>{
+      try {
+        const numBack = idx > 20 ? 20 : idx;
+        const backSamples = Array(numBack).fill(null).map((i,bIdx) => {
+          return getAvg(getAmbientTemps(idx - bIdx));
+        });
+
+        d.tempRate = calcDerivative(backSamples);
+
+        if(d.tempRate > 100) d.tempRate = 100;
+        if(d.tempRate < -100) d.tempRate = -100;
+      }catch(e){
+        console.log('error calcDerivative', e, selectedJson);
+      }
+    });
+    
 
   } catch(e){
     console.log('error parsing stats', e, selectedJson);
@@ -219,9 +265,7 @@ return (
             domain={['dataMin', 'dataMax']}
           />
           <YAxis/>
-          <Legend />
-          <Line dataKey="servo.percent" name="Servo %" stroke="black" dot={false} />
-              
+          <Legend />         
           {
             probeIndicesToRender.map((idx) => (
               <Line name={ 'Ambient #' + idx } dataKey={ (data) => data.probes[idx] ? data.probes[idx].ambientTempF : null } stroke="red" dot={false} unit="°f" />
@@ -232,7 +276,23 @@ return (
               <Line name={ 'Internal #' + idx } dataKey={ (data) => data.probes[idx] ? data.probes[idx].internalTempF : null } stroke="blue" dot={false} unit="°f" />
             ))
           }
-
+      </LineChart>
+    </ResponsiveContainer>
+    <ResponsiveContainer width="100%" aspect={3}>
+      <LineChart data={selectedSessionData}>
+          <CartesianGrid />
+          <Tooltip />
+          <XAxis
+            dataKey={ d => moment(d.timestamp).unix() * 1000  }
+            tickFormatter={(unixTime) => moment(unixTime).format('HH:mm') }
+            label={(unixTime) => moment(unixTime).format('HH:mm') }
+            type='number'
+            domain={['dataMin', 'dataMax']}
+          />
+          <YAxis/>
+          <Legend />
+          <Line dataKey="servo.percent" name="Temp Rate" stroke="black" dot={false} />
+          <Line dataKey="tempRate" name="Servo %" stroke="orange" dot={false} />
       </LineChart>
   </ResponsiveContainer>
 </div>

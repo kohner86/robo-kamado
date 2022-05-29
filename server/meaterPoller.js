@@ -10,7 +10,7 @@ let sessionId = null;
 
 const startPoller = (token) =>{
 
-    sessionId = (new Date().toISOString()).replace(':', "-") + ".txt"
+    sessionId = (new Date().toISOString()).replaceAll(':', "-") + ".txt"
 
     const updateData = () => {
         axios({
